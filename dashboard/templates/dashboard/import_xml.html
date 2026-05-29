@@ -1,0 +1,24 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<h2>Импорт XML</h2>
+
+<form
+        method="post"
+        enctype="multipart/form-data">
+
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <button
+            class="btn btn-primary">
+
+        Загрузить
+
+    </button>
+
+</form>
+
+{% endblock %}

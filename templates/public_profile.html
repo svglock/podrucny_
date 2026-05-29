@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                {% if profile_user.avatar %}
+                <img src="{{ profile_user.avatar.url }}" alt="Аватар" class="rounded-circle mb-3"
+                     style="width:150px; height:150px; object-fit:cover;">
+                {% else %}
+                <div class="rounded-circle bg-secondary d-inline-block mb-3"
+                     style="width:150px; height:150px; line-height:150px; font-size:3rem; color:white;">👤
+                </div>
+                {% endif %}
+                <h3>{{ profile_user.username }}</h3>
+                <p class="text-muted">{{ profile_user.get_role_display }}</p>
+                <p><i class="fas fa-star"></i> Рейтинг: <span id="avg-rating-stars"
+                                                              data-rating="{{ profile_user.get_average_rating|floatformat:1 }}"></span>
+                    ({{ profile_user.get_average_rating|floatformat:1 }} / 5)</p>
+                <p><i class="fas fa-check-circle"></i> Завершённых сделок: {{ profile_user.completed_orders }}</p>
+                <p><i class="fas fa-envelope"></i> {{ profile_user.email }}</p>
+                <p><i class="fas fa-phone"></i> {{ profile_user.phone|default:"—" }}</p>
+                {% if profile_user.social_link %}<p><a href="{{ profile_user.social_link }}">{{ profile_user.social_link
+                }}</a></p>{% endif %}
+                <p><strong>Стаж:</strong> {{ profile_user.get_experience_display|default:"не указан" }}</p>
+            </div>
+        </div>
+
+        {% if supplier %}
+        <h4>Поставщик – {{ supplier.company_name }}</h4>
+        <p>{{ supplier.description }}</p>
+        <p><strong>Радиус обслуживания:</strong> {{ supplier.delivery_radius }}</p>
+        <p><strong>Свой транспорт:</strong> {% if supplier.own_transport %}Да{% else %}Нет{% endif %}</p>
+        <p><strong>Работает с курьерами:</strong> {% if supplier.accepts_third_party_courier %}Да{% else %}Нет{% endif
+            %}</p>
+        {% if products %}
+        <h5>Ассортимент ({{ products|length }} товаров):</h5>
+        <div class="row">
+            {% for product in products %}
+            <div class="col-md-6 mb-2">
+                <div class="card p-2">{{ product.name }} ({{ product.get_category_display }})</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% elif courier %}
+        <h4>Курьер</h4>
+        <p><strong>Тип транспорта:</strong> {{ courier.get_vehicle_type_display }}</p>
+        <p><strong>Грузоподъёмность:</strong> {{ courier.max_weight_kg }} кг</p>
+        <p><strong>Объём кузова:</strong> {{ courier.cargo_volume_m3 }} м³</p>
+        <p><strong>Виды транспорта:</strong> {{ courier.transport_modes }}</p>
+        <p><strong>Радиус обслуживания:</strong> {{ courier.service_radius }}</p>
+        <p><strong>Грузчики:</strong> {% if courier.has_loaders %}Да{% else %}Нет{% endif %}</p>
+        <p><strong>Рефрижератор:</strong> {% if courier.has_fridge %}Да{% else %}Нет{% endif %}</p>
+        <p><strong>Стаж:</strong> {{ courier.experience_years }} лет</p>
+        {% elif profile_user.role == 'customer' %}
+        <h4>Заказчик</h4>
+        <p><strong>Стаж:</strong> {{ profile_user.customerprofile.experience_years }} лет</p>
+        <p><strong>Предпочитаемые категории:</strong>
+            {% for cat in profile_user.customerprofile.preferred_categories.all %}{{ cat.name }}{% if not forloop.last
+            %}, {% endif %}{% endfor %}
+        </p>
+        {% endif %}
+    </div>
+</div>
+<script src="{% static 'p1/js/rating.js' %}"></script>
+{% endblock %}

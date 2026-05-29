@@ -1,0 +1,146 @@
+{% extends 'dashboard/base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">
+            Создание заказа
+        </h2>
+        <p class="text-muted mb-0">
+            Оформление нового заказа клиента
+        </p>
+    </div>
+    <a href="/orders/"
+       class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>
+        Назад к заказам
+    </a>
+</div>
+<form method="post">
+    {% csrf_token %}
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-cart-check text-primary"></i>
+                        <span>
+                            Информация о заказе
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        {% for field in form %}
+                        {% if field.name == 'comment' %}
+                        <div class="col-12">
+                            {% else %}
+                            <div class="col-md-6">
+                                {% endif %}
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">
+                                        {{ field.label }}
+                                    </label>
+                                    {% if field.field.widget.input_type == 'select' %}
+
+                                    <select name="{{ field.name }}"
+                                            class="form-select">
+
+                                        {% for value, text in field.field.choices %}
+
+                                        <option value="{{ value }}"
+                                                {% if field.value== value %}selected{% endif %}>
+
+                                            {{ text }}
+
+                                        </option>
+
+                                        {% endfor %}
+
+                                    </select>
+
+                                    {% else %}
+
+                                    {{ field }}
+
+                                    {% endif %}
+                                    {% if field.help_text %}
+                                    <div class="form-text">
+                                        {{ field.help_text }}
+                                    </div>
+                                    {% endif %}
+                                    {% if field.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ field.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-info-circle text-primary"></i>
+                                <span>
+                            Информация
+                        </span>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="mb-4">
+                                <div class="small text-muted mb-1">
+                                    Статус заказа
+                                </div>
+                                <span class="badge rounded-pill bg-primary-subtle text-primary px-3 py-2">
+
+                            Новый
+                        </span>
+                            </div>
+                            <div class="mb-4">
+                                <div class="small text-muted mb-1">
+                                    Обработка
+                                </div>
+                                <div class="fw-semibold">
+                                    Автоматическая проверка остатков
+                                </div>
+                            </div>
+                            <div>
+                                <div class="small text-muted mb-1">
+                                    После создания
+                                </div>
+                                <ul class="small text-muted ps-3 mb-0">
+                                    <li>
+                                        Будет создан заказ клиента
+                                    </li>
+                                    <li>
+                                        Выполнится резервирование товаров
+                                    </li>
+                                    <li>
+                                        Заказ появится в панели управления
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <button type="submit"
+                                    class="btn btn-primary w-100 py-3 fw-semibold">
+                                <i class="bi bi-check2-circle me-2"></i>
+                                Создать заказ
+                            </button>
+                            <a href="/orders/"
+                               class="btn btn-light border w-100 mt-3 py-3">
+                                Отмена
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}

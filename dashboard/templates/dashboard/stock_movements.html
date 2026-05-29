@@ -1,0 +1,103 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<h2 class="mb-4">
+
+    Журнал складских операций
+
+</h2>
+
+<form method="get" class="mb-3">
+
+    <div class="row">
+
+        <div class="col-md-3">
+
+            <select
+                    name="type"
+                    class="form-select">
+
+                <option value="">
+                    Все операции
+                </option>
+
+                <option value="income">
+                    Приход
+                </option>
+
+                <option value="reserve">
+                    Резерв
+                </option>
+
+                <option value="writeoff">
+                    Списание
+                </option>
+
+                <option value="return">
+                    Возврат
+                </option>
+
+            </select>
+
+        </div>
+
+        <div class="col-md-2">
+
+            <button
+                    class="btn btn-primary">
+
+                Фильтр
+
+            </button>
+
+        </div>
+
+    </div>
+
+</form>
+
+<table class="table table-bordered">
+
+    <thead>
+
+    <tr>
+
+        <th>ID</th>
+        <th>Товар</th>
+        <th>Тип</th>
+        <th>Количество</th>
+        <th>Пользователь</th>
+        <th>Дата</th>
+
+    </tr>
+
+    </thead>
+
+    <tbody>
+
+    {% for movement in movements %}
+
+    <tr>
+
+        <td>{{ movement.id }}</td>
+
+        <td>{{ movement.product.title }}</td>
+
+        <td>{{ movement.get_movement_type_display }}</td>
+
+        <td>{{ movement.quantity }}</td>
+
+        <td>{{ movement.created_by }}</td>
+
+        <td>{{ movement.created_at }}</td>
+
+    </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}

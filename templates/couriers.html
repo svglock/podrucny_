@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<h2 class="mb-4"><i class="fas fa-truck me-2" style="color: #28a745;"></i>Курьеры</h2>
+
+<div class="card mb-4">
+    <div class="card-body py-3 px-3">
+        <form method="get" class="row g-2 align-items-center" id="courier-filter-form">
+            <div class="col-md-3 col-lg-3">
+                <input type="text" name="search" class="form-control form-control-sm" placeholder="🔍 Имя пользователя..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-3 col-lg-2">
+                <input type="text" name="region" class="form-control form-control-sm" placeholder="Регион" value="{{ region }}">
+            </div>
+            <div class="col-md-2 col-lg-2">
+                <select name="vehicle_type" class="form-select form-select-sm" id="vehicle_type" data-selected="{{ selected_vehicle }}">
+                    <option value="">Все типы</option>
+                    {% for code, name in vehicle_types %}
+                        <option value="{{ code }}">{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-auto d-flex align-items-center gap-2 flex-wrap">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" name="has_loaders" id="loaders" data-checked="{{ has_loaders_checked|lower }}">
+                    <label class="form-check-label small" for="loaders">👷 Грузчики</label>
+                </div>
+            </div>
+            <div class="col-12 d-flex align-items-center gap-2 flex-wrap mt-2">
+                <span class="small text-muted"><i class="fas fa-star"></i> Рейтинг от:</span>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-warning" onclick="setValue('min_rating_c','3')">★ 3</button>
+                    <button type="button" class="btn btn-outline-warning" onclick="setValue('min_rating_c','4')">★ 4</button>
+                    <button type="button" class="btn btn-outline-warning" onclick="setValue('min_rating_c','4.5')">★ 4.5</button>
+                </div>
+                <div class="input-group input-group-sm" style="width:100px;">
+                    <span class="input-group-text"><i class="fas fa-star"></i></span>
+                    <input type="number" name="min_rating" id="min_rating_c" class="form-control form-control-sm" placeholder="0-5" min="0" max="5" step="0.1" value="{{ min_rating }}">
+                </div>
+            </div>
+            <div class="col-12 d-flex align-items-center gap-2 flex-wrap mt-2">
+                <span class="small text-muted"><i class="fas fa-weight-hanging"></i> Грузопод. от (кг):</span>
+                <div class="input-group input-group-sm" style="width:120px;">
+                    <span class="input-group-text"><i class="fas fa-weight-hanging"></i></span>
+                    <input type="number" name="min_weight" class="form-control form-control-sm" placeholder="Мин. кг" step="0.1" value="{{ min_weight }}">
+                </div>
+                <span class="small text-muted ms-2"><i class="fas fa-cube"></i> Объём от (м³):</span>
+                <div class="input-group input-group-sm" style="width:120px;">
+                    <span class="input-group-text"><i class="fas fa-cube"></i></span>
+                    <input type="number" name="min_volume" class="form-control form-control-sm" placeholder="Мин. м³" step="0.1" value="{{ min_volume }}">
+                </div>
+            </div>
+            <div class="col-md-auto">
+                <button type="submit" class="btn btn-sm btn-primary">Найти</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    {% for courier in couriers %}
+        <div class="col-md-4 mb-4">
+            <div class="card-flip">
+                <div class="card-flip-inner">
+                    <div class="card-front p-3">
+                        <h5 class="card-title mb-1">{{ courier.user.username }}</h5>
+                        <p class="small mb-1"><i class="fas fa-truck"></i> {{ courier.get_vehicle_type_display }}</p>
+                        <p class="small mb-1"><i class="fas fa-weight-hanging"></i> {{ courier.max_weight_kg }} кг</p>
+                        <p class="small mb-1"><i class="fas fa-star"></i> Рейтинг: {{ courier.user.display_rating }}</p>
+                    </div>
+                    <div class="card-back">
+                        <h6>{{ courier.user.username }}</h6>
+                        <p class="small mb-1"><i class="fas fa-phone"></i> {{ courier.user.phone|default:"—" }}</p>
+                        <p class="small mb-1"><i class="fas fa-envelope"></i> {{ courier.user.email|default:"—" }}</p>
+                        <p class="small mb-1">Объём: {{ courier.cargo_volume_m3 }} м³</p>
+                        {% if courier.has_fridge %}<span class="badge bg-info">❄️ Рефрижератор</span>{% endif %}
+                        {% if courier.has_loaders %}<span class="badge bg-secondary">👷 Грузчики</span>{% endif %}
+                        <p class="small mb-1 mt-1"><a href="{% url 'user_reviews' courier.user.id %}">📝 Отзывы</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12"><p class="text-muted">Курьеры не найдены</p></div>
+    {% endfor %}
+</div>
+
+<script src="{% static 'p1/js/filters.js' %}"></script>
+{% endblock %}

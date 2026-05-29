@@ -1,0 +1,78 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-cart-check me-2"></i>Заказы</h2>
+<div class="d-flex flex-wrap gap-2 mb-3">
+    <a href="/orders/create/" class="btn btn-success">Создать заказ</a>
+    <a href="/orders/export/" class="btn btn-outline-success">Экспорт Excel</a>
+</div>
+<form method="get" class="row mb-3">
+    <div class="col-md-3">
+        <input type="number" name="search" class="form-control" placeholder="ID заказа"
+               value="{{ request.GET.search }}">
+    </div>
+    <div class="col-md-3">
+        <select name="status" class="form-select">
+            <option value="">Все статусы</option>
+            <option value="new">Новый</option>
+            <option value="confirmed">Подтверждён</option>
+            <option value="assembly">Сборка</option>
+            <option value="shipped">Отгружен</option>
+            <option value="delivered">Доставлен</option>
+            <option value="closed">Закрыт</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-primary">Найти</button>
+    </div>
+</form>
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Клиент</th>
+                <th>Статус</th>
+                <th>Сумма</th>
+                <th>Дата</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>{{ order.id }}</td>
+                <td>{{ order.customer }}</td>
+                <td>
+                    {% if order.status == 'new' %}<span class="badge bg-secondary">Новый</span>
+                    {% elif order.status == 'confirmed' %}<span class="badge bg-primary">Подтверждён</span>
+                    {% elif order.status == 'assembly' %}<span class="badge bg-warning text-dark">Сборка</span>
+                    {% elif order.status == 'shipped' %}<span class="badge bg-info">Отгружен</span>
+                    {% elif order.status == 'delivered' %}<span class="badge bg-success">Доставлен</span>
+                    {% elif order.status == 'closed' %}<span class="badge bg-dark">Закрыт</span>
+                    {% endif %}
+                </td>
+                <td>{{ order.total_price }} ₽</td>
+                <td>{{ order.created_at|date:"d.m.Y H:i" }}</td>
+                <td>
+                    {% if request.user.role == 'manager' or request.user.role == 'admin' %}
+                    <div class="btn-group btn-group-sm">
+                        <a href="/orders/{{ order.id }}/confirmed/" class="btn btn-outline-primary">Подтвердить</a>
+                        <a href="/orders/{{ order.id }}/assembly/" class="btn btn-outline-warning">Сборка</a>
+                        <a href="/orders/{{ order.id }}/shipped/" class="btn btn-outline-info">Отгрузка</a>
+                        <a href="/orders/{{ order.id }}/delivered/" class="btn btn-outline-success">Доставлен</a>
+                    </div>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center text-muted">Заказов нет</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

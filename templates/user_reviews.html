@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="row">
+    <div class="col-lg-6 mx-auto">
+        <h2 class="mb-3">Отзывы о {{ target_user.username }} ({{ target_user.get_role_display }})</h2>
+<p>
+    <strong>Средний рейтинг:</strong>
+    <span id="avg-rating-stars" data-rating="{{ target_user.get_average_rating|floatformat:2 }}"></span>
+    ({{ target_user.get_average_rating|floatformat:1 }})
+</p>
+
+{% if reviews %}
+    {% for review in reviews %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between">
+                <h6>
+    <a href="{% url 'public_profile' review.from_user.id %}">{{ review.from_user.username }}</a>
+    –
+    <span class="review-rating-stars" data-rating="{{ review.rating }}"></span>
+</h6>
+                <small class="text-muted">{{ review.created_at|date:"d.m.Y" }}</small>
+            </div>
+            <p class="mb-2">{{ review.comment }}</p>
+            {% if review.image %}
+                <img src="{{ review.image.url }}" alt="Фото отзыва" style="max-width:200px; border-radius:8px;">
+            {% endif %}
+        </div>
+    </div>
+{% empty %}
+    <p class="text-muted">Пока нет отзывов.</p>
+{% endfor %}
+{% else %}
+    <p class="text-muted">Пока нет отзывов.</p>
+{% endif %}
+
+{% if form %}
+    <hr>
+    <h5>Оставить отзыв</h5>
+    <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label class="form-label">Оценка</label>
+        <div class="rating-stars" id="rating-stars-container"></div>
+        {{ form.rating }}
+        {{ form.rating.errors }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label">{{ form.comment.label }}</label>
+        {{ form.comment }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label">{{ form.image.label }}</label>
+        {{ form.image }}
+    </div>
+    <button type="submit" class="btn btn-primary">Отправить</button>
+</form>
+{% endif %}
+</div>
+</div>
+<script src="{% static 'p1/js/rating_stars.js' %}"></script>
+{% endblock %}

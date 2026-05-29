@@ -1,0 +1,219 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">Панель управления</h2>
+    <span class="text-muted">{{ request.user.get_role_display }}</span>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-2">
+        <div class="card stat-card border-start border-primary border-5 h-100">
+            <div class="card-body d-flex align-items-center">
+                <i class="bi bi-box-seam display-6 me-3 text-primary"></i>
+                <div>
+                    <h6 class="card-subtitle mb-1 text-muted">Товары</h6>
+                    <h3 class="card-title mb-0 fw-bold">{{ products_count }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card stat-card border-start border-secondary border-5 h-100">
+            <div class="card-body d-flex align-items-center">
+                <i class="bi bi-cart display-6 me-3 text-secondary"></i>
+                <div>
+                    <h6 class="card-subtitle mb-1 text-muted">Новые заказы</h6>
+                    <h3 class="card-title mb-0 fw-bold">{{ new_orders }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card stat-card border-start border-info border-5 h-100">
+            <div class="card-body d-flex align-items-center">
+                <i class="bi bi-check-circle display-6 me-3 text-info"></i>
+                <div>
+                    <h6 class="card-subtitle mb-1 text-muted">Подтверждённые</h6>
+                    <h3 class="card-title mb-0 fw-bold">{{ confirmed_orders }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card stat-card border-start border-success border-5 h-100">
+            <div class="card-body d-flex align-items-center">
+                <i class="bi bi-truck display-6 me-3 text-success"></i>
+                <div>
+                    <h6 class="card-subtitle mb-1 text-muted">Доставленные</h6>
+                    <h3 class="card-title mb-0 fw-bold">{{ delivered_orders }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card stat-card border-start border-warning border-5 h-100">
+            <div class="card-body d-flex align-items-center">
+                <i class="bi bi-cash-stack display-6 me-3 text-warning"></i>
+                <div>
+                    <h6 class="card-subtitle mb-1 text-muted">Выручка</h6>
+                    <h3 class="card-title mb-0 fw-bold">{{ total_revenue }} ₽</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card stat-card border-start border-danger border-5 h-100">
+            <div class="card-body d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle display-6 me-3 text-danger"></i>
+                <div>
+                    <h6 class="card-subtitle mb-1 text-muted">Мало товара</h6>
+                    <h3 class="card-title mb-0 fw-bold">{{ low_stock }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Orders & Low Stock -->
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Последние заказы</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Клиент</th>
+                        <th>Статус</th>
+                        <th>Сумма</th>
+                        <th>Дата</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for order in recent_orders %}
+                    <tr>
+                        <td>{{ order.id }}</td>
+                        <td>{{ order.customer }}</td>
+                        <td>
+                            {% if order.status == 'new' %}
+                            <span class="badge bg-secondary">Новый</span>
+                            {% elif order.status == 'confirmed' %}
+                            <span class="badge bg-primary">Подтверждён</span>
+                            {% elif order.status == 'assembly' %}
+                            <span class="badge bg-warning text-dark">Сборка</span>
+                            {% elif order.status == 'shipped' %}
+                            <span class="badge bg-info text-dark">Отгружен</span>
+                            {% elif order.status == 'delivered' %}
+                            <span class="badge bg-success">Доставлен</span>
+                            {% elif order.status == 'closed' %}
+                            <span class="badge bg-dark">Закрыт</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ order.total_price }} ₽</td>
+                        <td>{{ order.created_at|date:"d.m.Y H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">Нет заказов</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        {% if low_stock_products %}
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-exclamation-diamond me-2"></i>Осталось мало товара</h5>
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for prod in low_stock_products %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ prod.title }}
+                    <span class="badge bg-danger">{{ prod.quantity }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        <!-- Latest Movements -->
+        <div class="card mt-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-arrow-left-right me-2"></i>Последние операции</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead>
+                    <tr>
+                        <th>Товар</th>
+                        <th>Тип</th>
+                        <th>Кол-во</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for m in latest_movements %}
+                    <tr>
+                        <td>{{ m.product.title }}</td>
+                        <td>{{ m.get_movement_type_display }}</td>
+                        <td>{{ m.quantity }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted">Нет операций</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Выручка по месяцам (доставленные)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="revenueChart" height="100"></canvas>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <script>
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: JSON.parse('{{ chart_labels_json|safe }}'),
+                    datasets: [{
+                        label: 'Выручка (₽)',
+                        data: JSON.parse('{{ chart_values_json|safe }}'),
+                        backgroundColor: 'rgba(21, 58, 91, 0.7)',
+                        borderColor: '#153A5B',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {legend: {display: false}},
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (value) {
+                                    return value + ' ₽';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        </script>
+    </div>
+</div>
+{% endblock %}

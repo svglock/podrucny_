@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-4">
+        <div class="search-card">
+            <h5 class="mb-3"><i class="fas fa-sliders-h me-2"></i>Параметры подбора</h5>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="product" class="form-label">Товар</label>
+                    <select name="product" id="product" class="form-select"
+                            style="background-color: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white;"
+                            required>
+                        <option value="" style="color: #333;">-- Выберите товар --</option>
+                        {% for p in products %}
+                        <option value="{{ p.id }}" style="color: #333;">{{ p.name }} ({{ p.get_category_display }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="quantity" class="form-label">Количество (шт.)</label>
+                    <input type="number" name="quantity" id="quantity" class="form-control"
+                           value="{{ quantity }}" min="1" required
+                           style="background-color: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white;">
+                </div>
+                <button type="submit" class="btn btn-light w-100 fw-bold" style="color: #3a7ca5;">
+                    <i class="fas fa-search me-2"></i>Найти варианты
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        {% if selected_product %}
+        <div class="alert alert-info">
+            <h5>Результаты для: {{ selected_product.name }} × {{ quantity }}</h5>
+            <p class="mb-0">
+                Общий вес: <strong>{{ total_weight|floatformat:2 }} кг</strong><br>
+                Общий объём: <strong>{{ total_volume|floatformat:3 }} м³</strong>
+            </p>
+        </div>
+
+        <h4 class="mt-4"><i class="fas fa-building text-primary"></i> Поставщики ({{ suppliers|length }})</h4>
+        <div class="row">
+            {% for supplier in suppliers %}
+            <div class="col-md-6 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ supplier.company_name }}</h5>
+                        <p class="card-text">
+                            <i class="fas fa-map-marker-alt text-secondary"></i> {{ supplier.region }}<br>
+                            <i class="fas fa-user"></i> {{ supplier.user.username }}<br>
+                            <i class="fas fa-phone"></i> {{ supplier.user.phone|default:"—" }}<br>
+                            <i class="fas fa-envelope"></i> {{ supplier.user.email|default:"—" }}
+                        </p>
+                        {% if supplier.has_cold_storage %}
+                        <span class="badge bg-info"><i class="fas fa-snowflake"></i> Холодильник</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-muted">Поставщики с этим товаром не найдены</p>
+            {% endfor %}
+        </div>
+
+        <h4 class="mt-4"><i class="fas fa-truck text-success"></i> Подходящие курьеры ({{ couriers|length }})</h4>
+        <div class="row">
+            {% for courier in couriers %}
+            <div class="col-md-6 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ courier.user.username }}</h5>
+                        <p class="card-text">
+                            <i class="fas fa-weight-hanging"></i> Грузоподъёмность: {{ courier.max_weight_kg }} кг<br>
+                            <i class="fas fa-cube"></i> Объём кузова: {{ courier.cargo_volume_m3 }} м³<br>
+                            <i class="fas fa-map-marker-alt"></i> {{ courier.region }}<br>
+                            <i class="fas fa-phone"></i> {{ courier.user.phone|default:"—" }}
+                        </p>
+                        {% if courier.has_fridge %}
+                        <span class="badge bg-info"><i class="fas fa-snowflake"></i> Рефрижератор</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-muted">Нет курьеров с подходящими параметрами</p>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-search fa-4x text-muted mb-3"></i>
+            <h3 class="text-muted">Выберите товар для подбора логистики</h3>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

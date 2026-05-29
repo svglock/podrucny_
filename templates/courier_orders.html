@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="mb-4"><i class="fas fa-truck"></i> Заказы (курьер)</h2>
+
+<div class="row">
+    {% for order in orders %}
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Заказ #{{ order.id }}</h5>
+                <p>
+                    <strong>Заказчик:</strong> {{ order.customer.username }}<br>
+                    <strong>Адрес доставки:</strong> {{ order.delivery_address }}<br>
+                    <strong>Поставщик:</strong> {{ order.supplier.company_name|default:"Не назначен" }}<br>
+                    <strong>Статус:</strong> {{ order.get_status_display }}<br>
+                    <strong>Создан:</strong> {{ order.created_at|date:"d.m.Y H:i" }}
+                </p>
+                <p><strong>Вес заказа:</strong> {{ order.total_weight|floatformat:2 }} кг ({{
+                    order.total_volume|floatformat:3 }} м³)</p>
+                <form method="post" action="{% url 'update_order_status' order.id %}" class="row g-2">
+                    {% csrf_token %}
+                    <div class="col">
+                        <select name="status" class="form-select">
+                            {% for code, name in order.STATUS_CHOICES %}
+                            <option value="{{ code }}" {% if order.status== code %}selected{% endif %}>{{ name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">Обновить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-muted">У вас пока нет заказов.</p>
+    {% endfor %}
+</div>
+{% endblock %}

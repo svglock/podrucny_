@@ -1,0 +1,179 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css"/>
+
+<style>
+    #map {
+        height: 520px;
+        border-radius: 18px;
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+
+    .leaflet-routing-container {
+        display: none;
+    }
+
+    .result-badge {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Создать доставку</h2>
+        <p class="text-muted mb-0">Построение оптимального маршрута с расчётом стоимости</p>
+    </div>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    {{ form.order.label_tag }}
+                    {{ form.order }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.courier.label_tag }}
+                    {{ form.courier }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label">Адрес отправления</label>
+                    <input type="text" id="id_start_address" name="start_address" class="form-control"
+                           placeholder="Введите адрес">
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Адрес доставки</label>
+                    <input type="text" id="id_end_address" name="end_address" class="form-control"
+                           placeholder="Введите адрес">
+                </div>
+                <div class="col-md-2">
+                    <button type="button" id="build_route_btn" class="btn btn-primary w-100">
+                        <i class="bi bi-sign-turn-right me-2"></i>Маршрут
+                    </button>
+                </div>
+            </div>
+
+            {{ form.distance_km }}
+            {{ form.route_duration_minutes }}
+
+            <div id="route-result" class="mt-3 d-none">
+                <div class="row">
+                    <div class="col-md-4">
+                        <span class="text-muted"><i class="bi bi-rulers me-1"></i> Расстояние:</span>
+                        <span id="result_distance" class="result-badge text-primary">—</span>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="text-muted"><i class="bi bi-clock me-1"></i> Время:</span>
+                        <span id="result_time" class="result-badge text-success">—</span>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="text-muted"><i class="bi bi-cash me-1"></i> Стоимость:</span>
+                        <span id="result_price" class="result-badge text-danger">—</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <button type="submit" class="btn btn-success btn-lg">
+        <i class="bi bi-truck me-2"></i>Создать доставку
+    </button>
+</form>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+
+<script>
+    const map = L.map('map').setView([55.751244, 37.618423], 5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    let startMarker = null;
+    let endMarker = null;
+    let routingControl = null;
+
+    // Геокодирование через Nominatim
+    async function geocode(address) {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`;
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data.length > 0) {
+            return {lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon)};
+        }
+        return null;
+    }
+
+    // Построение маршрута (линия на карте)
+    function buildRoute(startCoords, endCoords) {
+        if (routingControl) map.removeControl(routingControl);
+        routingControl = L.Routing.control({
+            waypoints: [L.latLng(startCoords.lat, startCoords.lon), L.latLng(endCoords.lat, endCoords.lon)],
+            routeWhileDragging: false,
+            addWaypoints: false,
+            draggableWaypoints: false,
+            fitSelectedRoutes: true,
+            lineOptions: {
+                styles: [{color: '#4f46e5', weight: 6}]
+            },
+            createMarker: function () {
+                return null;
+            } // не создаём дополнительные маркеры
+        }).addTo(map);
+
+        routingControl.on('routesfound', function (e) {
+            const route = e.routes[0];
+            const distanceKm = (route.summary.totalDistance / 1000).toFixed(2);
+            const durationMinutes = Math.round(route.summary.totalTime / 60);
+            const price = Math.round(distanceKm * 15);
+
+            document.getElementById('id_distance_km').value = distanceKm;
+            document.getElementById('id_route_duration_minutes').value = durationMinutes;
+            document.getElementById('result_distance').textContent = distanceKm + ' км';
+            document.getElementById('result_time').textContent = durationMinutes + ' мин';
+            document.getElementById('result_price').textContent = price + ' ₽';
+            document.getElementById('route-result').classList.remove('d-none');
+        });
+    }
+
+    document.getElementById('build_route_btn').addEventListener('click', async function () {
+        const startAddr = document.getElementById('id_start_address').value.trim();
+        const endAddr = document.getElementById('id_end_address').value.trim();
+        if (!startAddr || !endAddr) {
+            alert('Введите оба адреса');
+            return;
+        }
+
+        const startCoords = await geocode(startAddr);
+        const endCoords = await geocode(endAddr);
+        if (!startCoords || !endCoords) {
+            alert('Не удалось найти адрес');
+            return;
+        }
+
+        if (startMarker) map.removeLayer(startMarker);
+        if (endMarker) map.removeLayer(endMarker);
+        startMarker = L.marker([startCoords.lat, startCoords.lon]).addTo(map).bindPopup('Отправление');
+        endMarker = L.marker([endCoords.lat, endCoords.lon]).addTo(map).bindPopup('Назначение');
+
+        buildRoute(startCoords, endCoords);
+    });
+</script>
+
+{% endblock %}

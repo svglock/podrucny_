@@ -1,0 +1,200 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<h2 class="mb-4">
+
+    <i class="bi bi-boxes"></i>
+
+    Склад
+
+</h2>
+
+<div class="card mb-4">
+
+    <div class="card-body">
+
+        <form method="get">
+
+            <div class="row">
+
+                <div class="col-md-4">
+
+                    <input
+                            type="text"
+                            name="search"
+                            class="form-control"
+                            placeholder="Поиск товара">
+
+                </div>
+
+                <div class="col-md-2">
+
+                    <button
+                            class="btn btn-primary">
+
+                        Найти
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<div class="card mb-4">
+
+    <div class="card-body">
+
+        <table class="table table-hover">
+
+            <thead>
+
+            <tr>
+
+                <th>ID</th>
+                <th>Товар</th>
+                <th>Остаток</th>
+                <th>Резерв</th>
+                <th>Доступно</th>
+
+            </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for product in products %}
+
+            <tr>
+
+                <td>{{ product.id }}</td>
+
+                <td>{{ product.title }}</td>
+
+                <td>
+
+                    {% if product.quantity < 10 %}
+
+                    <span class="badge bg-danger">
+
+                        {{ product.quantity }}
+
+                    </span>
+
+                    {% else %}
+
+                    <span class="badge bg-success">
+
+                        {{ product.quantity }}
+
+                    </span>
+
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    {{ product.reserved_quantity }}
+
+                </td>
+
+                <td>
+
+                    {{ product.available_quantity }}
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<div class="card">
+
+    <div class="card-body">
+
+        <h5 class="mb-3">
+
+            Последние движения
+
+        </h5>
+
+        <table class="table">
+
+            <thead>
+
+            <tr>
+
+                <th>Товар</th>
+                <th>Тип</th>
+                <th>Количество</th>
+                <th>Дата</th>
+
+            </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for movement in movements %}
+
+            <tr>
+
+                <td>{{ movement.product.title }}</td>
+
+                <td>
+
+                    {% if movement.movement_type == 'income' %}
+                    <span class="badge bg-success">
+                        Приход
+                    </span>
+
+                    {% elif movement.movement_type == 'reserve' %}
+                    <span class="badge bg-warning">
+                        Резерв
+                    </span>
+
+                    {% elif movement.movement_type == 'writeoff' %}
+                    <span class="badge bg-danger">
+                        Списание
+                    </span>
+
+                    {% else %}
+                    <span class="badge bg-info">
+                        Возврат
+                    </span>
+                    {% endif %}
+
+                </td>
+
+                <td>{{ movement.quantity }}</td>
+
+                <td>{{ movement.created_at }}</td>
+
+            </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

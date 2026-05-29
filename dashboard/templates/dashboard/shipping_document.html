@@ -1,0 +1,142 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+<style>
+    .document-sheet {
+        background: white;
+        color: black;
+        padding: 40px;
+        border-radius: 12px;
+        max-width: 1200px;
+        margin: auto;
+        font-size: 14px;
+    }
+
+    .document-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .document-table td, .document-table th {
+        border: 1px solid #000;
+        padding: 8px;
+        vertical-align: top;
+    }
+
+    .document-table th {
+        background: #f5f5f5;
+    }
+
+    .sign-line {
+        border-bottom: 1px solid #000;
+        width: 200px;
+        margin: 5px 0;
+    }
+
+    @media print {
+        .sidebar, .topbar, .btn, .no-print {
+            display: none !important;
+        }
+
+        .main-content {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .document-sheet {
+            box-shadow: none;
+            border-radius: 0;
+            max-width: none;
+        }
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4 no-print">
+    <div>
+        <h2 class="fw-bold mb-1">Транспортная накладная</h2>
+        <p class="text-muted mb-0">Документ перевозки груза</p>
+    </div>
+    <button onclick="window.print()" class="btn btn-primary">
+        <i class="bi bi-printer me-2"></i>Печать
+    </button>
+</div>
+
+<div class="document-sheet">
+    <div class="text-center mb-4">
+        <h3 class="fw-bold">ТРАНСПОРТНАЯ НАКЛАДНАЯ</h3>
+        <div>№ {{ document.number }}</div>
+        <div class="text-muted">от {{ document.created_at|date:"d.m.Y" }}</div>
+    </div>
+
+    <table class="document-table mb-4">
+        <tr>
+            <td width="33%"><strong>Грузоотправитель</strong><br>
+                {{ document.sender_company|default:"ООО «СИНХРА»" }}<br>
+                ИНН 7701123456 &nbsp; КПП 770101001<br>
+                г. Москва, ул. Ленина, д. 10<br>
+                Тел.: +7 (495) 123-45-67
+            </td>
+            <td width="33%"><strong>Грузополучатель</strong><br>
+                {% if document.recipient_company %}
+                {{ document.recipient_company.name }}<br>
+                ИНН {{ document.recipient_company.inn }} &nbsp; КПП {{ document.recipient_company.kpp }}<br>
+                {{ document.recipient_company.address }}<br>
+                Тел.: {{ document.recipient_company.phone }}
+                {% else %}
+                Не указан
+                {% endif %}
+            </td>
+            <td width="33%"><strong>Сумма заказа</strong><br>
+                {% with invoice=document.order.invoice %}
+                {{ invoice.total_amount|floatformat:2 }} руб.<br>
+                {% if invoice.payment_url %}
+                <small><a href="{{ invoice.payment_url }}">Ссылка на оплату</a></small>
+                {% endif %}
+                {% endwith %}
+            </td>
+        </tr>
+        <tr>
+            <td><strong>Маршрут</strong><br>{{ document.route }}</td>
+            <td><strong>Транспортное средство</strong><br>
+                {{ document.vehicle_number|default:"Не указан" }}
+            </td>
+            <td><strong>Водитель</strong><br>{{ document.driver_name|default:"Не указан" }}</td>
+        </tr>
+    </table>
+
+    <table class="document-table mb-4">
+        <thead>
+        <tr>
+            <th>Груз (наименование)</th>
+            <th>Кол-во мест</th>
+            <th>Вес (кг)</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>{{ document.cargo_description }}</td>
+            <td>{{ document.places_count }}</td>
+            <td>{{ document.cargo_weight }}</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="row mt-5">
+        <div class="col-4">
+            <div class="sign-line"></div>
+            <small>Подпись водителя</small><br>
+            <span class="fw-bold">{{ document.driver_name|default:"___________" }}</span>
+        </div>
+        <div class="col-4">
+            <div class="sign-line"></div>
+            <small>Подпись отправителя</small><br>
+            <span class="fw-bold">___________</span>
+        </div>
+        <div class="col-4">
+            <div class="sign-line"></div>
+            <small>Подпись получателя</small><br>
+            <span class="fw-bold">___________</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

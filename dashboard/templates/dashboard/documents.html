@@ -1,0 +1,112 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+
+<h2 class="mb-4">
+    Документы
+</h2>
+
+<h4>Счета</h4>
+
+<table class="table">
+
+    <tr>
+
+        <th>ID</th>
+        <th>Номер</th>
+        <th>Заказ</th>
+
+    </tr>
+
+    {% for doc in invoices %}
+
+    <tr>
+
+        <td>{{ doc.id }}</td>
+
+        <td>{{ doc.number }}</td>
+
+        <td>{{ doc.order.id }}</td>
+        <td>
+
+            <a
+                    class="btn btn-success btn-sm"
+                    href="/invoice/{{ doc.id }}/pdf/">
+
+                PDF
+
+            </a>
+
+        </td>
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+<hr>
+
+<h4>Коммерческие предложения</h4>
+
+<table class="table">
+
+    <tr>
+
+        <th>ID</th>
+        <th>Заказ</th>
+
+    </tr>
+
+    {% for doc in offers %}
+
+    <tr>
+
+        <td>{{ doc.id }}</td>
+
+        <td>{{ doc.order.id }}</td>
+
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+<hr>
+
+<h4>Транспортные документы</h4>
+
+<table class="table">
+
+    <tr>
+
+        <th>ID</th>
+        <th>Маршрут</th>
+        <th>PDF</th>
+
+    </tr>
+
+    {% for doc in shipping %}
+
+    <tr>
+
+        <td>{{ doc.id }}</td>
+
+        <td>{{ doc.route }}</td>
+        <td>
+
+            <a
+                    href="/shipping/{{ doc.id }}/pdf/"
+                    class="btn btn-sm btn-success">
+
+                PDF
+
+            </a>
+
+        </td>
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+{% endblock %}

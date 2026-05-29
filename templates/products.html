@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<h2 class="mb-4"><i class="fas fa-box me-2" style="color: #fd7e14;"></i>Товары</h2>
+
+<div class="card mb-4">
+    <div class="card-body py-3 px-3">
+        <form method="get" class="row g-3" id="product-filter-form">
+            <div class="col-md-3">
+                <input type="text" name="search" class="form-control form-control-sm" placeholder="🔍 Поиск по названию..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-2">
+                <select name="category" class="form-select form-select-sm" id="category_select" data-selected="{{ selected_category }}">
+                    <option value="">Все категории</option>
+                    {% for code, name in categories %}
+                        <option value="{{ code }}">{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="danger_type" class="form-select form-select-sm" id="danger_select" data-selected="{{ selected_danger }}">
+                    <option value="">Все классы опасности</option>
+                    {% for code, name in danger_types %}
+                        <option value="{{ code }}">{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="requires_cold" id="requires_cold" data-checked="{{ requires_cold_checked|lower }}">
+                    <label class="form-check-label small" for="requires_cold">❄️ Требует холода</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="requires_fragile" id="requires_fragile" data-checked="{{ requires_fragile_checked|lower }}">
+                    <label class="form-check-label small" for="requires_fragile">⚠️ Хрупкое</label>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-sm btn-primary w-100">Найти</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    {% for product in products %}
+        <div class="col-md-4 mb-4">
+            <div class="card-flip">
+                <div class="card-flip-inner">
+                    <div class="card-front p-3 {{ product.get_category_class }}">
+                        <h5 class="card-title mb-1">{{ product.name }}</h5>
+                        <h6 class="text-muted mb-2">{{ product.get_category_display }}</h6>
+                        <p class="small mb-0">
+                            <i class="fas fa-weight-hanging"></i> {{ product.weight }} кг<br>
+                            <i class="fas fa-ruler"></i> {{ product.length }}×{{ product.width }}×{{ product.height }} см
+                        </p>
+                        <div class="mt-2">
+                            {% if product.requires_cold %}<span class="badge bg-info">❄️ Холод</span>{% endif %}
+                            {% if product.requires_fragile %}<span class="badge bg-warning text-dark">⚠️ Хрупкое</span>{% endif %}
+                        </div>
+                    </div>
+                    <div class="card-back {{ product.get_back_category_class }}">
+                        <h6>{{ product.name }}</h6>
+                        <p class="small">{{ product.description|default:"Без описания" }}</p>
+                        <hr class="my-2">
+                        <p class="small mb-1"><strong>Объём:</strong> {{ product.get_volume|floatformat:3 }} м³</p>
+                        {% if product.danger_type != 'none' %}
+                            <p class="small mb-1"><strong>Опасность:</strong> {{ product.get_danger_type_display }}</p>
+                        {% endif %}
+                        <p class="small mb-1"><strong>Категория:</strong> {{ product.get_category_display }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12"><p class="text-muted">Товары не найдены</p></div>
+    {% endfor %}
+</div>
+
+<script src="{% static 'p1/js/filters.js' %}"></script>
+{% endblock %}
